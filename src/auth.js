@@ -7,30 +7,29 @@ import CredentialsProvider from "next-auth/providers/credentials";
  * Supports role-based access control (BUYER, WORKER, ADMIN)
  */
 
-export const authOptions = {
+// Initialize NextAuth with configuration
+export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: process.env.AUTH_SECRET,
+  basePath: "/api/auth",
   
   providers: [
     CredentialsProvider({
       name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "email", placeholder: "user@example.com" },
-        password: { label: "Password", type: "password" }
-      },
+      credentials: {email: { label: "Email", type: "email" },
+      password: { label: "Password", type: "password" }
+    },
       
-      /**
-       * Authorize function - calls Express backend for authentication
-       * @param {Object} credentials - User credentials (email, password)
-       * @returns {Object|null} User object if authenticated, null otherwise
-       */
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Email and password are required");
-        }
-
         try {
-          // Call Express backend authentication endpoint
+          if (!credentials?.email || !credentials?.password) {
+            console.error("❌ Missing credentials");
+            return null;
+          }
+
           const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+          console.log("🔐 Attempting login at:", `${backendUrl}/auth/login`);
+          console.log("📧 Email:", credentials.email);
+          
           const response = await fetch(`${backendUrl}/auth/login`, {
             method: "POST",
             headers: {
@@ -42,28 +41,40 @@ export const authOptions = {
             })
           });
 
-          const data = await response.json();
-
-          // Check if authentication was successful
+          console.log("📡 Response status:", response.status);
+          
           if (!response.ok) {
-            throw new Error(data.message || "Authentication failed");
+            const errorData = await response.json().catch(() => ({}));
+            console.error("❌ Backend error:", errorData.message || "Unknown error");
+            return null;
           }
 
-          // Backend should return user object with: id, email, name, role, token
+          const data = await response.json();
+          console.log("📦 Response data:", { 
+            success: data.success, 
+            hasUser: !!data.user,
+            message: data.message 
+          });
+
           if (data.success && data.user) {
+            console.log("✅ Authentication successful for:", data.user.email);
+            
+            // Return user object that matches NextAuth expectations
             return {
-              id: data.user.id,
+              id: data.user.id.toString(),
               email: data.user.email,
               name: data.user.name,
-              role: data.user.role, // BUYER, WORKER, or ADMIN
-              accessToken: data.token || data.accessToken
+              role: data.user.role,
+              accessToken: data.token
             };
           }
 
+          console.error("❌ Invalid response format from backend");
           return null;
+          
         } catch (error) {
-          console.error("Authentication error:", error);
-          throw new Error(error.message || "Authentication failed");
+          console.error("💥 Authentication error:", error.message);
+          return null;
         }
       }
     })
@@ -80,16 +91,13 @@ export const authOptions = {
      * JWT Callback - runs when JWT is created or updated
      * Adds custom fields (role, accessToken) to the token
      */
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       // Initial sign in - add user data to token
       if (user) {
         token.id = user.id;
         token.role = user.role;
         token.accessToken = user.accessToken;
       }
-
-      // Optional: Refresh token logic can be added here
-      // Check if token is expired and refresh it from backend
 
       return token;
     },
@@ -107,34 +115,18 @@ export const authOptions = {
       }
 
       return session;
-    },
-
-    /**
-     * Redirect Callback - controls where users are redirected after auth
-     */
-    async redirect({ url, baseUrl }) {
-      // Redirect to dashboard after login
-      if (url.startsWith(baseUrl)) {
-        return url;
-      }
-      // Default redirect to home
-      return baseUrl;
     }
   },
 
   // Custom pages
   pages: {
     signIn: "/login",
-    signOut: "/",
-    error: "/login",
-    newUser: "/register"
+    error: "/login"
   },
 
   // Enable debug in development
-  debug: process.env.NODE_ENV === "development"
-};
-
-// Initialize NextAuth
-const { handlers, auth, signIn, signOut } = NextAuth(authOptions);
-
-export { handlers, auth, signIn, signOut };
+  debug: process.env.NODE_ENV === "development",
+  
+  // Trust host in development
+  trustHost: true
+});

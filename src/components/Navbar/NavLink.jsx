@@ -18,7 +18,7 @@ import { usePathname } from "next/navigation";
 const NavLink = ({ 
   href, 
   children, 
-  variant = "ghost", 
+  variant, 
   icon: Icon, 
   className = "",
   onClick,
@@ -28,7 +28,7 @@ const NavLink = ({
 
   // Check if this link is active
   // For home page, exact match; for others, check if path starts with href
-  const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
+  const isActive = href === "/register" ? false :  href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   // Build the button classes
   const buttonClasses = `btn btn-${variant} gap-2 ${
