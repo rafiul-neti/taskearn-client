@@ -7,9 +7,9 @@ import { NextResponse } from "next/server";
  */
 
 const protectedRoutes = {
-  "/dashboard/admin": ["ADMIN"],
-  "/dashboard/buyer": ["BUYER"],
-  "/dashboard/worker": ["WORKER"],
+  "/dashboard/admin-home": ["ADMIN"],
+  "/dashboard/buyer-home": ["BUYER"],
+  "/dashboard/worker-home": ["WORKER"],
   "/dashboard": ["BUYER", "WORKER", "ADMIN"],
   "/profile": ["BUYER", "WORKER", "ADMIN"],
   "/settings": ["BUYER", "WORKER", "ADMIN"]
@@ -71,9 +71,9 @@ export default auth((req) => {
       if (!allowedRoles.includes(userRole)) {
         // Redirect logic based on their actual role
         const roleDashboards = {
-          BUYER: "/dashboard/buyer",
-          WORKER: "/dashboard/worker",
-          ADMIN: "/dashboard/admin"
+          BUYER: "/dashboard/buyer-home",
+          WORKER: "/dashboard/worker-home",
+          ADMIN: "/dashboard/admin-home"
         };
         const fallback = roleDashboards[userRole] || "/";
         return NextResponse.redirect(new URL(fallback, req.url));
