@@ -10,9 +10,9 @@ import NavLink from "./NavLink";
 // Role-based dashboard route mapping
 const getDashboardRoute = (role) => {
   const routes = {
-    BUYER: "/dashboard/buyer",
-    WORKER: "/dashboard/worker",
-    ADMIN: "/dashboard/admin"
+    BUYER: "/dashboard/buyer-home",
+    WORKER: "/dashboard/worker-home",
+    ADMIN: "/dashboard/admin-home"
   };
   return routes[role] || "/dashboard";
 };
@@ -34,7 +34,7 @@ const getNavigationItems = (isAuthenticated, userRole) => {
   return [
     { label: "Home", href: "/", icon: Home },
     { label: "Dashboard", href: getDashboardRoute(userRole), icon: LayoutDashboard },
-    { label: "Logout", action: () => signOut(), icon: LogOut, variant: "ghost" }
+    { label: "Logout", action: () => signOut(), icon: LogOut, variant: "error" }
   ];
 };
 

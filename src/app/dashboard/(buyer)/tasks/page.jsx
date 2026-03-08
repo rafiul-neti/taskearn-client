@@ -13,7 +13,7 @@ export default function MyTasksPage() {
             Manage all your created tasks
           </p>
         </div>
-        <a href="/dashboard/buyer/tasks/new" className="btn btn-primary">
+        <a href="/dashboard/add-tasks" className="btn btn-primary">
           Create New Task
         </a>
       </div>

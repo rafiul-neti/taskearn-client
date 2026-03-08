@@ -48,7 +48,7 @@ export default async function DashboardLayout({ children }) {
         </div>
 
         {/* 4. Responsive Sidebar Side-panel */}
-        <div className="drawer-side z-50">
+        <div className="drawer-side z-30">
           <label htmlFor="dashboard-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
           {/* The DashboardSidebar component already handles role-based 
               link generation internally based on the session prop.

@@ -2,7 +2,7 @@
 import { 
   Home, List, Send, Landmark, 
   PlusCircle, LayoutList, Coins, History, 
-  Users, ShieldCheck 
+  Users, ShieldCheck, ClipboardCheck 
 } from "lucide-react";
 
 export const DASHBOARD_MENU = {
@@ -16,7 +16,8 @@ export const DASHBOARD_MENU = {
     { label: "Home", href: "/dashboard/buyer-home", icon: Home },
     { label: "Add new Tasks", href: "/dashboard/add-tasks", icon: PlusCircle },
     { label: "My Tasks", href: "/dashboard/added-tasks", icon: LayoutList },
-    { label: "Purchase Coin", href: "/dashboard/purchase-coin", icon: Coins },
+    { label: "Tasks to Review", href: "/dashboard/review", icon: ClipboardCheck },
+    { label: "Purchase Coin", href: "/dashboard/purchase-coins", icon: Coins },
     { label: "Payment history", href: "/dashboard/buyer-payments", icon: History },
   ],
   ADMIN: [

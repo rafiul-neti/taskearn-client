@@ -16,7 +16,7 @@ import { LogIn, Mail, Lock, AlertCircle } from "lucide-react";
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || `/dashboard/worker`;
+  const callbackUrl = searchParams.get("callbackUrl") || `/dashboard`;
 
   const [isLoading, setIsLoading] = useState(false);
 

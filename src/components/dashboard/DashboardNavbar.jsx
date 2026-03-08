@@ -1,6 +1,7 @@
 "use client";
 
 import { Bell } from "lucide-react";
+import Link from "next/link";
 
 /**
  * Dashboard Navbar
@@ -11,7 +12,7 @@ export default function DashboardNavbar({ user, coinBalance = 0 }) {
     <div className="navbar bg-base-200 border-b border-base-300 px-4">
       {/* Logo */}
       <div className="flex-none w-48">
-        <span className="text-2xl font-bold text-primary">TaskEarn</span>
+        <Link href={`/`} className="text-2xl font-bold text-primary">TaskEarn</Link>
       </div>
 
       {/* Center: User Info */}
