@@ -20,11 +20,13 @@ import {
   Eye,
 } from "lucide-react";
 import { imageUpload } from "@/lib/imageUpload";
+import { useAxiosSecure } from "@/hooks";
 
 export default function AddTaskForm() {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const axiosSecure = useAxiosSecure();
 
   const {
     register,
@@ -72,49 +74,20 @@ export default function AddTaskForm() {
     setIsLoading(true);
 
     try {
-      // Get token from session
-
-      const response = await fetch("/api/auth/session");
-
-      const session = await response.json();
-
-      if (!session?.accessToken) {
-        toast.error("Authentication required. Please login again.", {
-          duration: 4000,
-        });
-
-        router.push("/login");
-
-        return;
-      }
-
       let taskImage;
       if (data.taskImage) {
         taskImage = await imageUpload(data.taskImage[0]);
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-      const taskResponse = await fetch(`${apiUrl}/api/tasks`, {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-
-          Authorization: `Bearer ${session.accessToken}`,
-        },
-
-        body: JSON.stringify({
-          ...data,
-          taskImage,
-
-          status: isDraft ? "DRAFT" : "PUBLISHED",
-        }),
+      const response = await axiosSecure.post("/api/tasks", {
+        ...data,
+        taskImage,
+        status: isDraft ? "DRAFT" : "PUBLISHED",
       });
 
-      const result = await taskResponse.json();
+      const result = response.data;
 
-      if (taskResponse.ok && result.success) {
+      if (result.success) {
         toast.success(
           isDraft
             ? "Task saved as draft successfully!"
@@ -143,9 +116,13 @@ export default function AddTaskForm() {
     } catch (error) {
       console.error("Create task error:", error);
 
-      toast.error("An unexpected error occurred. Please try again.", {
-        duration: 4000,
-      });
+      toast.error(
+        error.response?.data?.message ||
+          "An unexpected error occurred. Please try again.",
+        {
+          duration: 4000,
+        },
+      );
     } finally {
       setIsLoading(false);
     }
