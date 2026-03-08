@@ -19,6 +19,7 @@ import {
   ArrowLeft,
   Eye,
 } from "lucide-react";
+import { imageUpload } from "@/lib/imageUpload";
 
 export default function AddTaskForm() {
   const [step, setStep] = useState(1);
@@ -68,252 +69,391 @@ export default function AddTaskForm() {
   const prevStep = () => setStep((prev) => prev - 1);
 
   const onSubmit = async (data, isDraft = false) => {
-    // ... your existing submission logic ...
+    setIsLoading(true);
+
+    try {
+      // Get token from session
+
+      const response = await fetch("/api/auth/session");
+
+      const session = await response.json();
+
+      if (!session?.accessToken) {
+        toast.error("Authentication required. Please login again.", {
+          duration: 4000,
+        });
+
+        router.push("/login");
+
+        return;
+      }
+
+      let taskImage;
+      if (data.taskImage) {
+        taskImage = await imageUpload(data.taskImage[0]);
+      }
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+      const taskResponse = await fetch(`${apiUrl}/api/tasks`, {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+
+          Authorization: `Bearer ${session.accessToken}`,
+        },
+
+        body: JSON.stringify({
+          ...data,
+          taskImage,
+
+          status: isDraft ? "DRAFT" : "PUBLISHED",
+        }),
+      });
+
+      const result = await taskResponse.json();
+
+      if (taskResponse.ok && result.success) {
+        toast.success(
+          isDraft
+            ? "Task saved as draft successfully!"
+            : "Task published successfully!",
+
+          {
+            duration: 3000,
+
+            icon: "🎉",
+          },
+        );
+
+        setTimeout(() => {
+          router.push("/dashboard/added-tasks");
+
+          router.refresh();
+        }, 1500);
+      } else {
+        toast.error(
+          result.message || "Failed to create task. Please try again.",
+          {
+            duration: 4000,
+          },
+        );
+      }
+    } catch (error) {
+      console.error("Create task error:", error);
+
+      toast.error("An unexpected error occurred. Please try again.", {
+        duration: 4000,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const today = new Date().toISOString().split("T")[0];
 
   return (
-    <div className="space-y-8">
-      {/* STEPS INDICATOR (DaisyUI) */}
-      <ul className="steps w-full mb-8">
-        <li className={`step ${step >= 1 ? "step-primary" : ""}`}>Info</li>
-        <li className={`step ${step >= 2 ? "step-primary" : ""}`}>
-          Requirements
-        </li>
-        <li className={`step ${step >= 3 ? "step-primary" : ""}`}>Budget</li>
-        <li className={`step ${step >= 4 ? "step-primary" : ""}`}>Preview</li>
-      </ul>
+    <>
+      {/* Toast Container */}
 
-      <form className="min-h-[400px]">
-        {/* STEP 1: BASIC INFO */}
-        {step === 1 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-            <div className="flex items-center gap-2 border-b border-base-300 pb-2 text-primary">
-              <FileText size={20} />
-              <h2 className="font-bold uppercase tracking-widest text-sm">
-                Step 1: Basic Details
-              </h2>
-            </div>
-            <div className="form-control w-full">
-              <label className="label block">
-                <span className="label-text font-bold">Task Title</span>
-              </label>
-              <input
-                type="text"
-                className="input w-full input-bordered rounded-xl"
-                {...register("title", { required: "Title is required" })}
-              />
-              {errors.title && (
-                <span className="text-error text-xs mt-1">
-                  {errors.title.message}
-                </span>
-              )}
-            </div>
-            <div className="form-control w-full">
-              <label className="label block">
-                <span className="label-text font-bold">Description</span>
-              </label>
-              <textarea
-                className="textarea w-full textarea-bordered h-32 rounded-xl"
-                {...register("description", {
-                  required: "Description is required",
-                })}
-              />
-            </div>
-          </div>
-        )}
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        toastOptions={{
+          style: {
+            padding: "16px",
 
-        {/* STEP 2: PROOF & INSTRUCTIONS */}
-        {step === 2 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-            <div className="flex items-center gap-2 border-b border-base-300 pb-2 text-secondary">
-              <ListChecks size={20} />
-              <h2 className="font-bold uppercase tracking-widest text-sm">
-                Step 2: Requirements
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {["IMAGE", "LINK", "BOTH"].map((type) => (
-                <label key={type} className="cursor-pointer group">
-                  <input
-                    type="radio"
-                    value={type}
-                    className="peer hidden"
-                    {...register("proofType")}
-                  />
-                  <div className="flex flex-col items-center p-6 bg-base-200/50 border-2 border-transparent rounded-2xl peer-checked:border-primary peer-checked:bg-base-100 transition-all">
-                    {type === "IMAGE" ? (
-                      <ImageIcon size={24} />
-                    ) : type === "LINK" ? (
-                      <LinkIcon size={24} />
-                    ) : (
-                      <Sparkles size={24} />
-                    )}
-                    <span className="font-bold mt-2">{type}</span>
-                  </div>
-                </label>
-              ))}
-            </div>
-            <div className="form-control">
-              <label className="label block">
-                <span className="label-text font-bold">Instructions</span>
-              </label>
-              <textarea
-                className="textarea w-full textarea-bordered h-40 rounded-xl"
-                {...register("instructions", { required: true })}
-              />
-            </div>
-          </div>
-        )}
+            borderRadius: "8px",
+          },
 
-        {/* STEP 3: BUDGET & DEADLINE */}
-        {step === 3 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-            <div className="flex items-center gap-2 border-b border-base-300 pb-2 text-accent">
-              <Coins size={20} />
-              <h2 className="font-bold uppercase tracking-widest text-sm">
-                Step 3: Budget
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="form-control">
+          success: {
+            iconTheme: {
+              primary: "#10b981",
+
+              secondary: "#fff",
+            },
+          },
+
+          error: {
+            iconTheme: {
+              primary: "#ef4444",
+
+              secondary: "#fff",
+            },
+          },
+        }}
+      />
+
+      <div className="space-y-8">
+        {/* STEPS INDICATOR (DaisyUI) */}
+        <ul className="steps w-full mb-8">
+          <li className={`step ${step >= 1 ? "step-primary" : ""}`}>Info</li>
+          <li className={`step ${step >= 2 ? "step-primary" : ""}`}>
+            Requirements
+          </li>
+          <li className={`step ${step >= 3 ? "step-primary" : ""}`}>Budget</li>
+          <li className={`step ${step >= 4 ? "step-primary" : ""}`}>Preview</li>
+        </ul>
+
+        <form className="min-h-[400px]">
+          {/* STEP 1: BASIC INFO */}
+          {step === 1 && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+              <div className="flex items-center gap-2 border-b border-base-300 pb-2 text-primary">
+                <FileText size={20} />
+                <h2 className="font-bold uppercase tracking-widest text-sm">
+                  Step 1: Basic Details
+                </h2>
+              </div>
+              <div className="form-control w-full">
                 <label className="label block">
-                  <span className="label-text font-bold">Reward (Coins)</span>
+                  <span className="label-text font-bold">Task Title</span>
                 </label>
                 <input
-                  type="number"
-                  step="0.01"
-                  className="input w-full input-bordered font-bold"
-                  {...register("rewardAmount", { required: true })}
+                  type="text"
+                  className="input w-full input-focus rounded-xl"
+                  {...register("title", { required: "Title is required" })}
                 />
-              </div>
-              <div className="form-control">
-                <label className="label block">
-                  <span className="label-text font-bold">Worker Slots</span>
-                </label>
-                <input
-                  type="number"
-                  className="input w-full input-bordered font-bold"
-                  {...register("totalSlots", { required: true })}
-                />
-              </div>
-            </div>
-            <div className="form-control">
-              <label className="label block">
-                <span className="label-text font-bold">Deadline</span>
-              </label>
-              <input
-                type="date"
-                min={today}
-                className="input w-full input-bordered font-bold"
-                {...register("deadline", { required: true })}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* STEP 4: PREVIEW SECTION */}
-        {step === 4 && (
-          <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
-            <div className="flex items-center gap-2 border-b border-base-300 pb-2 text-primary">
-              <Eye size={20} />
-              <h2 className="font-bold uppercase tracking-widest text-sm">
-                Step 4: Preview & Confirm
-              </h2>
-            </div>
-
-            <div className="bg-base-200/50 rounded-3xl p-6 space-y-4 border border-base-300">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-[10px] font-black opacity-40 uppercase">
-                    Title
-                  </p>
-                  <p className="font-bold">{formData.title}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-black opacity-40 uppercase">
-                    Proof Type
-                  </p>
-                  <span className="badge badge-primary">
-                    {formData.proofType}
+                {errors.title && (
+                  <span className="text-error text-xs mt-1">
+                    {errors.title.message}
                   </span>
+                )}
+              </div>
+              <div className="form-control w-full">
+                <label className="label block">
+                  <span className="label-text font-bold">Description</span>
+                </label>
+                <textarea
+                  className="textarea input-focus w-full textarea-bordered h-32 rounded-xl"
+                  {...register("description", {
+                    required: "Description is required",
+                  })}
+                />
+              </div>
+
+              <div className="form-control">
+                <label
+                  htmlFor="image"
+                  className="block mb-2 text-sm font-medium text-gray-700"
+                >
+                  <span className="label-text font-bold">
+                    Task Image (Optional)
+                  </span>
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="block w-full text-sm text-gray-500
+      file:mr-4 file:py-2 file:px-4
+      file:rounded-md file:border-0
+      file:text-sm file:font-semibold
+      file:bg-lime-50 file:text-secondary
+      hover:file:bg-blue-100
+      bg-gray-100 border border-dashed rounded-md cursor-pointer
+      focus:outline-primary focus:ring-1 focus:ring-primary focus:border-0
+      py-2"
+                  {...register("taskImage")}
+                />
+                <p className="mt-1 text-xs text-gray-400">
+                  PNG, JPG or JPEG (max 2MB)
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 2: PROOF & INSTRUCTIONS */}
+          {step === 2 && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+              <div className="flex items-center gap-2 border-b border-base-300 pb-2 text-secondary">
+                <ListChecks size={20} />
+                <h2 className="font-bold uppercase tracking-widest text-sm">
+                  Step 2: Requirements
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {["IMAGE", "LINK", "BOTH"].map((type) => (
+                  <label key={type} className="cursor-pointer group">
+                    <input
+                      type="radio"
+                      value={type}
+                      className="peer hidden"
+                      {...register("proofType")}
+                    />
+                    <div className="flex flex-col items-center p-6 bg-base-200/50 border-2 border-transparent rounded-2xl peer-checked:border-primary peer-checked:bg-base-100 transition-all">
+                      {type === "IMAGE" ? (
+                        <ImageIcon size={24} />
+                      ) : type === "LINK" ? (
+                        <LinkIcon size={24} />
+                      ) : (
+                        <Sparkles size={24} />
+                      )}
+                      <span className="font-bold mt-2">{type}</span>
+                    </div>
+                  </label>
+                ))}
+              </div>
+              <div className="form-control">
+                <label className="label block">
+                  <span className="label-text font-bold">Instructions</span>
+                </label>
+                <textarea
+                  className="textarea input-focus w-full textarea-bordered h-40 rounded-xl"
+                  {...register("instructions", { required: true })}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3: BUDGET & DEADLINE */}
+          {step === 3 && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+              <div className="flex items-center gap-2 border-b border-base-300 pb-2 text-accent">
+                <Coins size={20} />
+                <h2 className="font-bold uppercase tracking-widest text-sm">
+                  Step 3: Budget
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="form-control">
+                  <label className="label block">
+                    <span className="label-text font-bold">Reward (Coins)</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="input input-focus w-full input-bordered font-bold"
+                    {...register("rewardAmount", { required: true })}
+                  />
+                </div>
+                <div className="form-control">
+                  <label className="label block">
+                    <span className="label-text font-bold">Worker Slots</span>
+                  </label>
+                  <input
+                    type="number"
+                    className="input input-focus w-full input-bordered font-bold"
+                    {...register("totalSlots", { required: true })}
+                  />
                 </div>
               </div>
-              <div>
-                <p className="text-[10px] font-black opacity-40 uppercase">
-                  Instructions Summary
-                </p>
-                <p className="text-sm line-clamp-2 italic text-base-content/70">
-                  {formData.instructions}
-                </p>
+              <div className="form-control">
+                <label className="label block">
+                  <span className="label-text font-bold">Deadline</span>
+                </label>
+                <input
+                  type="date"
+                  min={today}
+                  className="input focus:ring-1 focus:ring-primary focus:border-0 input-focus w-full font-bold"
+                  {...register("deadline", { required: true })}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* STEP 4: PREVIEW SECTION */}
+          {step === 4 && (
+            <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
+              <div className="flex items-center gap-2 border-b border-base-300 pb-2 text-primary">
+                <Eye size={20} />
+                <h2 className="font-bold uppercase tracking-widest text-sm">
+                  Step 4: Preview & Confirm
+                </h2>
               </div>
 
-              <div className="divider opacity-10"></div>
-
-              {/* BUDGET CALCULATION PREVIEW */}
-              <div className="flex flex-col md:flex-row items-center justify-between bg-base-100 p-4 rounded-2xl border border-base-300">
+              <div className="bg-base-200/50 rounded-3xl p-6 space-y-4 border border-base-300">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[10px] font-black opacity-40 uppercase">
+                      Title
+                    </p>
+                    <p className="font-bold">{formData.title}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black opacity-40 uppercase">
+                      Proof Type
+                    </p>
+                    <span className="badge badge-primary">
+                      {formData.proofType}
+                    </span>
+                  </div>
+                </div>
                 <div>
                   <p className="text-[10px] font-black opacity-40 uppercase">
-                    Total Investment
+                    Instructions Summary
                   </p>
-                  <p className="text-3xl font-black text-primary">
-                    {total} <span className="text-xs">COINS</span>
+                  <p className="text-sm line-clamp-2 italic text-base-content/70">
+                    {formData.instructions}
                   </p>
                 </div>
-                <div className="text-right text-sm opacity-60">
-                  <p>
-                    {formData.rewardAmount} x {formData.totalSlots} Slots
-                  </p>
-                  <p>Expires: {formData.deadline}</p>
+
+                <div className="divider opacity-10"></div>
+
+                {/* BUDGET CALCULATION PREVIEW */}
+                <div className="flex flex-col md:flex-row items-center justify-between bg-base-100 p-4 rounded-2xl border border-base-300">
+                  <div>
+                    <p className="text-[10px] font-black opacity-40 uppercase">
+                      Total Investment
+                    </p>
+                    <p className="text-3xl font-black text-primary">
+                      {total} <span className="text-xs">COINS</span>
+                    </p>
+                  </div>
+                  <div className="text-right text-sm opacity-60">
+                    <p>
+                      {formData.rewardAmount} x {formData.totalSlots} Slots
+                    </p>
+                    <p>Expires: {formData.deadline}</p>
+                  </div>
                 </div>
               </div>
             </div>
+          )}
+
+          {/* NAVIGATION BUTTONS */}
+          <div className="grid grid-cols-12 gap-5 items-center mt-10 pt-6 border-t border-base-300">
+            {step > 1 ? (
+              <button
+                type="button"
+                onClick={prevStep}
+                className="col-span-3 btn btn-circle btn-outline gap-2"
+              >
+                <ArrowLeft size={18} />
+              </button>
+            ) : (
+              ""
+            )}
+
+            {step < 4 ? (
+              <button
+                type="button"
+                onClick={nextStep}
+                className={`${step === 1 ? "col-span-12" : "col-span-9"} btn btn-primary whitespace-nowrap px-10 rounded-xl gap-2`}
+              >
+                Next Step <ArrowRight size={18} />
+              </button>
+            ) : (
+              <div className="col-span-9 flex gap-1.5 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={handleSubmit((data) => onSubmit(data, true))}
+                  className="btn btn-outline whitespace-nowrap flex-1 sm:px-8"
+                >
+                  <Save size={18} /> Save Draft
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSubmit((data) => onSubmit(data, false))}
+                  className="btn btn-primary whitespace-nowrap flex-1 sm:px-10 bg-linear-to-r from-primary to-secondary border-none text-white shadow-lg"
+                >
+                  <Send size={18} /> Launch Task
+                </button>
+              </div>
+            )}
           </div>
-        )}
-
-        {/* NAVIGATION BUTTONS */}
-        <div className="grid grid-cols-12 gap-5 items-center mt-10 pt-6 border-t border-base-300">
-          {step > 1 ? (
-            <button
-              type="button"
-              onClick={prevStep}
-              className="col-span-3 btn btn-outline gap-2"
-            >
-              <ArrowLeft size={18} /> Back
-            </button>
-          ) : (
-            ""
-          )}
-
-          {step < 4 ? (
-            <button
-              type="button"
-              onClick={nextStep}
-              className={`${step === 1 ? "col-span-12" : "col-span-9"} btn btn-primary whitespace-nowrap px-10 rounded-xl gap-2`}
-            >
-              Next Step <ArrowRight size={18} />
-            </button>
-          ) : (
-            <div className="col-span-9 flex gap-1.5 w-full sm:w-auto">
-              <button
-                type="button"
-                onClick={handleSubmit((data) => onSubmit(data, true))}
-                className="btn btn-outline whitespace-nowrap flex-1 sm:px-8"
-              >
-                <Save size={18} /> Save Draft
-              </button>
-              <button
-                type="button"
-                onClick={handleSubmit((data) => onSubmit(data, false))}
-                className="btn btn-primary whitespace-nowrap flex-1 sm:px-10 bg-linear-to-r from-primary to-secondary border-none text-white shadow-lg"
-              >
-                <Send size={18} /> Launch Task
-              </button>
-            </div>
-          )}
-        </div>
-      </form>
-    </div>
+        </form>
+      </div>
+    </>
   );
 }

@@ -27,13 +27,20 @@ export default async function DashboardLayout({ children }) {
 
       {/* 2. DaisyUI Drawer Wrapper */}
       <div className="drawer lg:drawer-open flex-1">
-        <input id="dashboard-drawer" type="checkbox" className="drawer-toggle" />
-        
+        <input
+          id="dashboard-drawer"
+          type="checkbox"
+          className="drawer-toggle"
+        />
+
         {/* 3. Main Content Area */}
         <div className="drawer-content flex flex-col">
           {/* Mobile Menu Trigger - Hidden on Desktop (lg) */}
           <div className="lg:hidden flex items-center p-4 bg-base-200/50">
-            <label htmlFor="dashboard-drawer" className="btn btn-primary btn-sm btn-square lg:hidden">
+            <label
+              htmlFor="dashboard-drawer"
+              className="btn btn-primary btn-sm btn-square lg:hidden"
+            >
               <Menu size={20} />
             </label>
             <span className="ml-4 font-bold text-primary capitalize">
@@ -42,18 +49,19 @@ export default async function DashboardLayout({ children }) {
           </div>
 
           {/* Dynamic Page Content */}
-          <main className="flex-1 p-4 md:p-6 lg:p-8">
-            {children}
-          </main>
+          <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
         </div>
 
         {/* 4. Responsive Sidebar Side-panel */}
         <div className="drawer-side z-30">
-          <label htmlFor="dashboard-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
-          {/* The DashboardSidebar component already handles role-based 
-              link generation internally based on the session prop.
-          */}
-          <DashboardSidebar session={session} />
+          <label
+            htmlFor="dashboard-drawer"
+            aria-label="close sidebar"
+            className="drawer-overlay"
+          ></label>
+          <div className="pt-16 lg:pt-0 h-full">
+            <DashboardSidebar session={session} />
+          </div>
         </div>
       </div>
     </div>

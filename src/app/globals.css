@@ -1,7 +1,9 @@
 @import "tailwindcss";
 
 @plugin "daisyui" {
-  themes: light --default, dark;
+  themes:
+    light --default,
+    dark;
 }
 
 @plugin "daisyui/theme" {
@@ -9,20 +11,20 @@
   default: true;
 
   /* Brand Colors - TaskEarn Indigo & Purple */
-  --color-primary: oklch(58% 0.22 265);         /* Indigo-600 */
+  --color-primary: oklch(58% 0.22 265); /* Indigo-600 */
   --color-primary-content: oklch(100% 0 0);
-  
-  --color-secondary: oklch(56% 0.26 295);       /* Purple-600 */
+
+  --color-secondary: oklch(56% 0.26 295); /* Purple-600 */
   --color-secondary-content: oklch(100% 0 0);
-  
-  --color-accent: oklch(62% 0.19 235);          /* Blue-Cyan */
+
+  --color-accent: oklch(62% 0.19 235); /* Blue-Cyan */
   --color-accent-content: oklch(100% 0 0);
 
   /* Base Backgrounds */
-  --color-base-100: oklch(100% 0 0);             /* Pure white cards */
-  --color-base-200: oklch(98% 0 0);               /* Gray-50 Page bg */
-  --color-base-300: oklch(96% 0.002 264);         /* Gray-100 Borders */
-  --color-base-content: oklch(25% 0.015 264);     /* Gray-900 Text */
+  --color-base-100: oklch(100% 0 0); /* Pure white cards */
+  --color-base-200: oklch(98% 0 0); /* Gray-50 Page bg */
+  --color-base-300: oklch(96% 0.002 264); /* Gray-100 Borders */
+  --color-base-content: oklch(25% 0.015 264); /* Gray-900 Text */
 
   /* Neutral - Dark slate for Hero/Footers */
   --color-neutral: oklch(32% 0.012 252);
@@ -35,7 +37,7 @@
   --color-warning-content: oklch(20% 0.01 75);
   --color-error: oklch(62% 0.25 25);
   --color-error-content: oklch(100% 0 0);
-  --color-info: oklch(60% 0.20 240);
+  --color-info: oklch(60% 0.2 240);
   --color-info-content: oklch(100% 0 0);
 
   /* DaisyUI Component Variables */
@@ -50,10 +52,10 @@
   /* Brand Colors - Slightly higher lightness for Dark Mode */
   --color-primary: oklch(62% 0.22 265);
   --color-primary-content: oklch(100% 0 0);
-  
+
   --color-secondary: oklch(60% 0.26 295);
   --color-secondary-content: oklch(100% 0 0);
-  
+
   --color-accent: oklch(66% 0.19 235);
   --color-accent-content: oklch(100% 0 0);
 
@@ -71,11 +73,16 @@
   --color-success: oklch(68% 0.17 155);
   --color-warning: oklch(75% 0.15 75);
   --color-error: oklch(62% 0.25 25);
-  --color-info: oklch(60% 0.20 240);
-  
+  --color-info: oklch(60% 0.2 240);
+
   --rounded-box: 1rem;
   --rounded-btn: 0.5rem;
 }
 
 /* Custom variant for dark mode toggle support */
 @custom-variant dark (&:where([data-theme=taskearn_dark], [data-theme=taskearn_dark] *));
+
+/* buyer AddTaskForm input classes */
+.input-focus {
+  @apply focus:mt-1.5 focus:border-0 focus:outline-primary;
+}
