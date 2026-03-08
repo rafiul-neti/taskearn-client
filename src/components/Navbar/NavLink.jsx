@@ -4,36 +4,31 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 /**
- * NavLink component that highlights the active route
- * Supports both regular links and button-styled links with icons
- * 
- * @param {string} href - The destination URL
- * @param {React.ReactNode} children - The link content (text/icon)
- * @param {string} variant - DaisyUI button variant (ghost, primary, etc.)
- * @param {React.Component} icon - Lucide icon component
- * @param {string} className - Additional CSS classes
- * @param {Function} onClick - Optional click handler
- * @param {boolean} isMobile - Whether this is rendered in mobile drawer
+ * Final NavLink Component
+ * Highlights based on exact match for dashboard roots and prefix match for sub-routes.
  */
 const NavLink = ({ 
   href, 
   children, 
-  variant, 
+  variant = "ghost", 
   icon: Icon, 
   className = "",
-  onClick,
-  isMobile = false
+  onClick 
 }) => {
   const pathname = usePathname();
 
-  // Check if this link is active
-  // For home page, exact match; for others, check if path starts with href
-  const isActive = href === "/register" ? false :  href === "/" ? pathname === "/" : pathname.startsWith(href);
+  // 1. Logic for Active State:
+  // - If it's a dashboard root (Home), use an exact match to prevent it from staying active on sub-pages.
+  // - For all other links, use startsWith so the parent remains active on sub-routes.
+  const isDashboardRoot = href.endsWith("/buyer") || href.endsWith("/worker") || href.endsWith("/admin");
+  
+  const isActive = isDashboardRoot 
+    ? pathname === href : (href === "/" ? pathname === "/" : pathname.startsWith(href))
 
-  // Build the button classes
-  const buttonClasses = `btn btn-${variant} gap-2 ${
-    isActive ? 'text-primary' : ''
-  } ${isMobile ? 'w-full justify-start' : ''} ${className}`;
+  // 2. Build DaisyUI button classes
+  const buttonClasses = `btn btn-${variant} gap-3 ${
+    isActive ? 'bg-primary/10 text-primary font-bold border-r-4 border-primary' : 'font-medium opacity-80'
+  } ${className}`;
 
   return (
     <Link
@@ -41,8 +36,8 @@ const NavLink = ({
       className={buttonClasses}
       onClick={onClick}
     >
-      {Icon && <Icon size={18} />}
-      {children}
+      {Icon && <Icon size={20} />}
+      <span className="flex-1 text-left">{children}</span>
     </Link>
   );
 };

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, LayoutDashboard, LogIn, UserPlus, LogOut, Menu } from "lucide-react";
+import { Home, LayoutDashboard, LogIn, CodeXml, LogOut, Menu } from "lucide-react";
 import NavLink from "./NavLink";
 
 // Role-based dashboard route mapping
@@ -25,8 +25,8 @@ const getNavigationItems = (isAuthenticated, userRole) => {
       { label: "Home", href: "/", icon: null },
       { label: "How it works", href: "/#how-it-works", icon: null },
       { label: "Testimonials", href: "/#testimonials", icon: null },
-      { label: "Login", href: "/login", icon: LogIn, variant: "ghost" },
-      { label: "Register", href: "/register", icon: UserPlus, variant: "primary" }
+      { label: "Login", href: "/login", icon: LogIn, variant: "primary" },
+      { label: "Join as Developer", href: "https://github.com/rafiul-neti/taskearn-client", icon: CodeXml, variant: "primary" }
     ];
   }
 
