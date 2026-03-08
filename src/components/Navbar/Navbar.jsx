@@ -156,6 +156,7 @@ export default function Navbar() {
                     href={item.href}
                     variant={item.variant || "ghost"}
                     icon={Icon}
+                    className={item.label === "Login" && "btn-outline"}
                   >
                     {item.label}
                   </NavLink>

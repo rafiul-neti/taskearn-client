@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import Hero from "@/components/Hero";
 import BestWorkers from "@/components/BestWorkers";
 import Testimonials from "@/components/Testimonials";
+import Footer from "@/components/Footer";
 
 export default async function Home() {
   const session = await auth();
@@ -25,6 +26,8 @@ export default async function Home() {
           </p>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 }
